@@ -10,34 +10,22 @@ proto::protocol_type proto::identify_protocol(const uint8_t* data, size_t size) 
         if (data[i] == proto::gt06::constants::magic1 && data[i + 1] == proto::gt06::constants::magic2) {
             return protocol_type::gt06;
         }
-        // ...
     }
 
     return protocol_type::unknown;
 }
 
-std::unique_ptr<proto::i_framer> proto::make_framer(proto::protocol_type p) {
+const proto::protocol_descriptor* proto::registry::resolve(proto::protocol_type p) {
     if (p == protocol_type::unknown) return nullptr;
 
     switch (p) {
-    case proto::protocol_type::gt06:
-        return std::make_unique<proto::gt06::framer>();
-
-        // case ...
-
-    default:
-        return nullptr;
-    }
-}
-
-std::unique_ptr<proto::i_decoder> proto::make_decoder(proto::protocol_type p) {
-    if (p == protocol_type::unknown) return nullptr;
-
-    switch (p) {
-    case proto::protocol_type::gt06:
-        return std::make_unique<proto::gt06::decoder>();
-
-        // case ...
+    case protocol_type::gt06:
+        static const protocol_descriptor desc{
+            &gt06::g_decoder,
+            &gt06::g_encoder,
+            []() -> std::unique_ptr<i_framer> { return std::make_unique<gt06::framer>(); },
+        };
+        return &desc;
 
     default:
         return nullptr;

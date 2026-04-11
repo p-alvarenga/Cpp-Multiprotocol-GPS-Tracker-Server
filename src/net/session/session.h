@@ -13,8 +13,8 @@ namespace net {
 class session {
 private:
     proto::protocol_type protocol{proto::protocol_type::unknown};
-    std::unique_ptr<proto::i_framer> framer;
-    std::unique_ptr<proto::i_decoder> decoder;
+    const proto::protocol_descriptor* proto_desc{nullptr}; // decoder & encoder
+    std::unique_ptr<proto::i_framer> framer{nullptr};
 
     int socket_fd{-1};
     net::session_id id;

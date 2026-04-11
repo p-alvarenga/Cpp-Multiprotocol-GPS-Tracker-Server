@@ -51,19 +51,23 @@ void net::session::loop() noexcept {
                 continue;
             }
 
-            framer = proto::make_framer(protocol);
-            decoder = proto::make_decoder(protocol);
+            proto_desc = proto::registry::resolve(protocol);
+            if (!proto_desc) {
+                protocol = proto::protocol_type::unknown;
+                continue;
+            }
+
+            framer = proto_desc->make_framer();
         }
 
         if (protocol != proto::protocol_type::unknown && framer) {
-
             framer->feed(reinterpret_cast<const uint8_t*>(read_buffer), static_cast<size_t>(n_recv));
 
             proto::raw_frame f;
-            proto::decoded_packet pkt;
+            proto::packet pkt;
 
             while (framer->next(f)) {
-                if (decoder->decode(f, pkt)) {
+                if (proto_desc->decoder->decode(f, pkt)) {
                     // emit event
                 } else {
                     core::log::err("Could not decode packet");

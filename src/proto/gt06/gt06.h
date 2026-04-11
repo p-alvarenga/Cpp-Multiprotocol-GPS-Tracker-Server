@@ -28,7 +28,12 @@ private:
     // ...
 
 public:
-    bool decode(const raw_frame& frame, decoded_packet& out) noexcept final override;
+    bool decode(const raw_frame& frame, packet& out) const noexcept final override;
 };
+
+class encoder : public proto::i_encoder {};
+
+inline decoder g_decoder;
+inline encoder g_encoder;
 
 } // namespace proto::gt06
