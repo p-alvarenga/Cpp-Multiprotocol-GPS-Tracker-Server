@@ -8,10 +8,10 @@
 
 #include "core/log.h"
 #include "net/constants.h"
-#include "proto/proto.h"
+#include "protocol/protocol.h"
 
 [[__nodiscard__("net::session::start() return must not be discarded")]]
-bool net::session::start() noexcept {
+bool net::session::session::start() noexcept {
     if (socket_fd < 0) return false;
     if (!id.is_valid()) return false;
 
@@ -25,13 +25,13 @@ bool net::session::start() noexcept {
     return true;
 }
 
-void net::session::loop() noexcept {
+void net::session::session::loop() noexcept {
     while (is_running()) {
         memset(read_buffer, 0, constants::session_read_buffer_size);
 
         ssize_t n_recv = ::read(socket_fd, read_buffer, constants::session_read_buffer_size);
         if (n_recv == 0) {
-            core::log::warn("session id=%d fd=%d disconnected. closing...");
+            core::log::warn("session (id=%d fd=%d) disconnected. closing...", id.get(), socket_fd);
             request_stop();
             return;
         }
@@ -42,52 +42,50 @@ void net::session::loop() noexcept {
             return;
         }
 
-        if (protocol == proto::protocol_type::unknown) {
+        if (protocol == protocol::type::unknown) {
             protocol =
-                proto::identify_protocol(reinterpret_cast<const uint8_t*>(read_buffer), static_cast<size_t>(n_recv));
+                protocol::identify_protocol(reinterpret_cast<const uint8_t*>(read_buffer), static_cast<size_t>(n_recv));
 
-            if (protocol == proto::protocol_type::unknown) {
+            if (protocol == protocol::type::unknown) {
                 core::log::warn("could not identify protocol (session %d)", id.get());
                 continue;
             }
 
-            proto_desc = proto::registry::resolve(protocol);
+            proto_desc = protocol::registry::resolve(protocol);
             if (!proto_desc) {
-                protocol = proto::protocol_type::unknown;
+                protocol = protocol::type::unknown;
                 continue;
             }
 
             framer = proto_desc->make_framer();
         }
 
-        if (protocol != proto::protocol_type::unknown && framer) {
+        if (protocol != protocol::type::unknown && framer) {
             framer->feed(reinterpret_cast<const uint8_t*>(read_buffer), static_cast<size_t>(n_recv));
 
-            proto::raw_frame f;
-            proto::packet pkt;
+            protocol::frame f;
+            protocol::packet pkt;
 
             while (framer->next(f)) {
-                if (proto_desc->decoder->decode(f, pkt)) {
-                    // emit event
-                } else {
-                    core::log::err("Could not decode packet");
+                if (!proto_desc->decoder->decode(f, pkt)) {
+                    core::log::err("session[%d]=could not decode packet", id.get());
+                    continue;
                 }
+
+                emit(pkt.msg);
             }
         }
     }
 }
 
-void net::session::request_stop() noexcept {
-    if (running.exchange(false)) {
-        core::log::info("session %d requested stop but was not running", id.get());
-        return;
-    }
+void net::session::session::request_stop() noexcept {
+    if (running.exchange(false)) return;
 
     shutdown(socket_fd, SHUT_RDWR);
     close(socket_fd);
 }
 
-void net::session::stop() noexcept {
+void net::session::session::stop() noexcept {
     request_stop();
 
     if (std::this_thread::get_id() == th.get_id()) [[__unlikely__]] {

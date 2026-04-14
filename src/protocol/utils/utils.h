@@ -4,10 +4,11 @@
 #include <cstdint>
 #include <unistd.h>
 
-namespace proto::utils {
+namespace protocol::utils {
 
 ssize_t decode_bcd(char* out, const uint8_t* data, size_t size) noexcept;
+uint16_t calculate_crc16();
 
 // crc related
 
-} // namespace proto::utils
+} // namespace protocol::utils

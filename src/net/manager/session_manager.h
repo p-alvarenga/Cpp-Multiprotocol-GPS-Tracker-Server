@@ -4,21 +4,21 @@
 #include <memory>
 #include <unordered_map>
 
-#include "net/event/session_event.h"
+#include "evt/router/event_queue.h"
+#include "evt/session/session_event.h"
 #include "net/session/session.h"
 #include "net/session_id.h"
-#include "router/event_queue.h"
 
-namespace net {
+namespace net::session {
 
-class session_manager {
+class manager {
 private:
     std::atomic<bool> running{false};
 
     std::unordered_map<session_id, std::unique_ptr<session>, session_id_hash> sessions;
     std::unordered_map<int, session_id> fd_index;
 
-    router::ev_queue<session_event>* sink{nullptr};
+    evt::event_queue<evt::session::event>* sink{nullptr};
     std::atomic<uint64_t> id_counter{1};
     mutable std::mutex m;
 
@@ -33,11 +33,11 @@ public:
     void stop_all() noexcept;
     void shutdown() noexcept;
 
-    void bind_sink(router::ev_queue<session_event>& q) noexcept { sink = &q; }
+    void bind_sink(evt::event_queue<evt::session::event>& q) noexcept { sink = &q; }
     // use assert(sink) everywhere!
 
-    session_manager() noexcept = default;
-    ~session_manager() noexcept = default;
+    manager() noexcept = default;
+    ~manager() noexcept = default;
 };
 
-} // namespace net
+} // namespace net::session

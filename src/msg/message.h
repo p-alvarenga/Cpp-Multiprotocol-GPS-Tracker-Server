@@ -31,10 +31,10 @@ public:
         new (&login_msg) login(l);
         type = kind::login;
     }
+    const login* get_login() const { return type == kind::login ? &login_msg : nullptr; }
 
     kind which() const noexcept { return type; }
-
-    message() = default;
+    message() = default; // dangerours
 };
 
 inline bool message::operator==(const message& msg) const noexcept {

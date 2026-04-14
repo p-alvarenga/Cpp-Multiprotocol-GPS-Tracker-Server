@@ -21,7 +21,7 @@ struct login {
 
 inline login login::make(const char* imei_bytes, uint16_t serial) noexcept {
     login m;
-    m.imei = core::imei::from_bytes(imei_bytes);
+    m.imei = core::imei::make_from_bytes(imei_bytes);
     m.serial = serial;
     return m;
 }

@@ -1,16 +1,14 @@
-#include "proto/gt06/constants.h"
-#include "proto/gt06/gt06.h"
+#include "protocol/gt06/constants.h"
+#include "protocol/gt06/gt06.h"
 
-void proto::gt06::framer::feed(const uint8_t* data, size_t size) noexcept {
+void protocol::gt06::framer::feed(const uint8_t* data, size_t size) noexcept {
     buffer.insert(buffer.end(), data, data + size);
 }
 
-bool proto::gt06::framer::next(proto::raw_frame& out) noexcept {
+bool protocol::gt06::framer::next(frame& out) noexcept {
     size_t buffer_size = buffer.size();
 
-    if (buffer_size < 18) {
-        return false;
-    }
+    if (buffer_size < 18) return false;
 
     if (offset > max_framer_offset_size && offset > buffer_size / 2) {
         buffer.erase(buffer.begin(), buffer.begin() + offset);
@@ -19,6 +17,7 @@ bool proto::gt06::framer::next(proto::raw_frame& out) noexcept {
     }
 
     size_t it = offset;
+
     for (; it + 1 < buffer_size; ++it) {
         if (buffer[it] == constants::magic1 && constants::magic2) {
             break;
@@ -33,16 +32,12 @@ bool proto::gt06::framer::next(proto::raw_frame& out) noexcept {
     }
 
     offset = it;
-    if (buffer_size - offset < 3) {
-        return false;
-    }
+    if (buffer_size - offset < 3) return false;
 
     uint8_t len = buffer[offset + 2];
     size_t total = len + 5;
 
-    if (buffer_size - offset < total) {
-        return false;
-    }
+    if (buffer_size - offset < total) return false;
 
     if (buffer[offset + total - 2] != constants::stop1 || buffer[offset + total - 1] != constants::stop2) {
         offset++;

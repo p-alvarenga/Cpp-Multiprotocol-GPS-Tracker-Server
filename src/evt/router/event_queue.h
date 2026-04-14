@@ -5,11 +5,11 @@
 #include <queue>
 #include <utility>
 
-namespace router {
+namespace evt {
 
 template <typename T>
 
-struct ev_queue { // temporary solution, better with SPSC queue with ring buffer;
+struct event_queue { // temporary solution, better with SPSC queue with ring buffer;
 private:
     std::queue<T> q;
     mutable std::mutex m;
@@ -19,6 +19,7 @@ public:
     void push(T e) noexcept {
         std::lock_guard<std::mutex> lk(m);
         q.push(std::move(e));
+        cv.notify_one();
     }
 
     T wait_and_pop() noexcept {
@@ -48,4 +49,4 @@ public:
         }
     }
 };
-} // namespace router
+} // namespace evt

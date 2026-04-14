@@ -3,7 +3,7 @@
 #include <atomic>
 #include <netinet/in.h>
 
-#include "router/event_router.h"
+#include "evt/router/event_router.h"
 
 namespace server {
 
@@ -17,8 +17,8 @@ private:
     int socket_fd{-1};
     sockaddr_in addr{};
 
-    net::session_manager sessions;
-    router::event_router router;
+    net::session::manager session_manager;
+    evt::router router;
 
 public:
     bool init() noexcept;

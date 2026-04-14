@@ -1,9 +1,9 @@
-#include "session_manager.h"
+#include "net/manager/session_manager.h"
 
 #include "core/log.h"
 
 [[__nodiscard__("net::session_manager::create_session return must not be discarded")]]
-bool net::session_manager::create_session(int fd) noexcept {
+bool net::session::manager::create_session(int fd) noexcept {
     assert(sink);
 
     { // verify if already exists
@@ -13,7 +13,6 @@ bool net::session_manager::create_session(int fd) noexcept {
             return false;
         }
     }
-
     // create and start session
     session_id id = next_id();
     std::unique_ptr<session> s = std::make_unique<session>(fd, id, *sink);

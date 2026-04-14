@@ -23,8 +23,8 @@ bool server::init() noexcept {
     if (bind(socket_fd, (sockaddr*)&addr, sizeof(addr)) < 0) return false;
 
     // managers
-    sessions.bind_sink(router.get_sessions_sink());
-    router.bind_session_manager(sessions);
+    session_manager.bind_sink(router.get_sessions_sink());
+    router.bind_session_manager(session_manager);
 
     return true;
 }
@@ -36,6 +36,11 @@ bool server::run() noexcept {
     core::log::info("server: started listen at %d", port);
     running.store(true);
 
+    if (!router.start()) {
+        core::log::err("server fatal: event router could not start");
+        return false;
+    }
+
     while (running.load()) {
         sockaddr_in session_addr{};
         socklen_t session_len = sizeof(session_addr);
@@ -46,7 +51,7 @@ bool server::run() noexcept {
             continue;
         }
 
-        sessions.create_session(session_fd);
+        session_manager.create_session(session_fd);
     }
 
     return true;
