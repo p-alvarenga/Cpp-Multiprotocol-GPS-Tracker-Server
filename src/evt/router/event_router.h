@@ -2,7 +2,6 @@
 
 #include <thread>
 
-#include "core/log.h"
 #include "evt/router/event_queue.h"
 #include "evt/session/session_event.h"
 #include "net/manager/session_manager.h"
