@@ -11,6 +11,8 @@ enum class kind : uint8_t {
 
     message,
     error,
+
+    sys_shutdown,
 };
 
 enum class error_code : int {
@@ -28,6 +30,8 @@ inline constexpr const char* kind_to_str(kind k) {
         return "SESSION_MESSAGE";
     case kind::error:
         return "SESSION_ERROR";
+    case kind::sys_shutdown:
+        return "SYSTEM_SHUTDOWN";
     }
 
     __builtin_unreachable();

@@ -13,8 +13,6 @@ namespace net::session {
 
 class manager {
 private:
-    std::atomic<bool> running{false};
-
     std::unordered_map<session_id, std::unique_ptr<session>, session_id_hash> sessions;
     std::unordered_map<int, session_id> fd_index;
 
@@ -30,7 +28,6 @@ public:
     bool delete_session_by_fd(int fd) noexcept;
 
     void scan_sessions() noexcept;
-    void stop_all() noexcept;
     void shutdown() noexcept;
 
     void bind_sink(evt::event_queue<evt::session::event>& q) noexcept { sink = &q; }

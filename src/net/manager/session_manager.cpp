@@ -32,3 +32,11 @@ bool net::session::manager::create_session(int fd) noexcept {
     core::log::info("successfully created session id=%d with fd=%d", id.get(), fd);
     return true;
 }
+
+void net::session::manager::shutdown() noexcept {
+    std::lock_guard<std::mutex> lk(m);
+    for (auto it = sessions.begin(); it != sessions.end();) {
+        it->second->stop();
+        it = sessions.erase(it);
+    }
+}

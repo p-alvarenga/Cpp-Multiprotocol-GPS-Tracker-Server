@@ -13,7 +13,7 @@ namespace net::session {
 class session {
 private:
     protocol::type protocol{protocol::type::unknown};
-    const protocol::protocol_descriptor* proto_desc{nullptr}; // decoder & encoder
+    const protocol::descriptor* protocol_desc{nullptr}; // decoder & encoder
     std::unique_ptr<protocol::i_framer> framer{nullptr};
 
     int socket_fd{-1};

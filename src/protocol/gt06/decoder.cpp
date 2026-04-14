@@ -1,7 +1,10 @@
+#include <cstdint>
+
 #include "core/log.h"
 #include "protocol/gt06/constants.h"
 #include "protocol/gt06/gt06.h"
 #include "protocol/protocol.h"
+#include "protocol/utils/utils.h"
 
 bool protocol::gt06::decoder::decode(const frame& f, packet& out) const noexcept {
     core::log::hex(f.data, f.size);
@@ -24,6 +27,11 @@ bool protocol::gt06::decoder::decode(const frame& f, packet& out) const noexcept
         return false;
     }
 
+    uint16_t expected_crc = utils::calculate_crc16_x25(f.data + 2, f.size - 5);
+    uint16_t crc = (static_cast<uint16_t>(f.data[f.size - 4]) << 8) | static_cast<uint16_t>(f.data[f.size - 3]);
+
+    core::log::info("gt06::decoder: crc=%d expected_crc=%d", crc, expected_crc);
+
     switch (pkt_type) {
 
     case constants::login_id:
@@ -35,7 +43,6 @@ bool protocol::gt06::decoder::decode(const frame& f, packet& out) const noexcept
         }
 
         out.msg.set_login(l);
-
         return true;
 
     default:

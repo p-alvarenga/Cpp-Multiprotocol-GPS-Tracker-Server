@@ -46,13 +46,12 @@ public:
     frame generate_ack(const packet& pkt, frame& out);
 };
 
-struct protocol_descriptor {
+struct descriptor {
     i_decoder* decoder;
     i_encoder* encoder;
     std::unique_ptr<i_framer> (*make_framer)();
 };
-
 namespace registry {
-const protocol_descriptor* resolve(protocol::type p);
-}
+const descriptor* resolve(protocol::type p);
+} // namespace registry
 } // namespace protocol

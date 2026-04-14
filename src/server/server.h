@@ -24,8 +24,10 @@ public:
     bool init() noexcept;
     bool run() noexcept;
 
+    void shutdown() noexcept;
+
     server(int port, int n_conn) noexcept : port(port), n_connections(n_conn) {}
-    ~server() noexcept = default;
+    ~server() noexcept { shutdown(); };
 };
 
 } // namespace server

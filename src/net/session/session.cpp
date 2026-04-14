@@ -1,4 +1,3 @@
-
 #include "net/session/session.h"
 
 #include <cstdint>
@@ -51,13 +50,13 @@ void net::session::session::loop() noexcept {
                 continue;
             }
 
-            proto_desc = protocol::registry::resolve(protocol);
-            if (!proto_desc) {
+            protocol_desc = protocol::registry::resolve(protocol);
+            if (!protocol_desc) {
                 protocol = protocol::type::unknown;
                 continue;
             }
 
-            framer = proto_desc->make_framer();
+            framer = protocol_desc->make_framer();
         }
 
         if (protocol != protocol::type::unknown && framer) {
@@ -67,7 +66,7 @@ void net::session::session::loop() noexcept {
             protocol::packet pkt;
 
             while (framer->next(f)) {
-                if (!proto_desc->decoder->decode(f, pkt)) {
+                if (!protocol_desc->decoder->decode(f, pkt)) {
                     core::log::err("session[%d]=could not decode packet", id.get());
                     continue;
                 }
@@ -81,8 +80,8 @@ void net::session::session::loop() noexcept {
 void net::session::session::request_stop() noexcept {
     if (running.exchange(false)) return;
 
-    shutdown(socket_fd, SHUT_RDWR);
-    close(socket_fd);
+    ::shutdown(socket_fd, SHUT_RDWR);
+    ::close(socket_fd);
 }
 
 void net::session::session::stop() noexcept {

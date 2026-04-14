@@ -17,10 +17,15 @@ private:
     std::atomic<bool> running{false};
     std::thread th;
 
-    void run();
+    void run() noexcept;
 
 public:
-    bool start();
+    bool start() noexcept;
+    void request_shutdown() noexcept;
+
+    void join() noexcept {
+        if (th.joinable()) th.join();
+    }
 
     void bind_session_manager(net::session::manager& s_mgr) noexcept { session_manager = &s_mgr; }
     // bind_device_manager(...) noexcept { ... }
@@ -33,11 +38,11 @@ public:
 
     explicit router() noexcept = default;
     ~router() noexcept {
-        if (std::this_thread::get_id() == th.get_id()) {
-            core::log::err("evt::router fatal: tried to selfjoin (deadlock)");
-        }
+        request_shutdown();
 
-        if (th.joinable()) th.join();
+        if (std::this_thread::get_id() != th.get_id() && th.joinable()) {
+            th.join();
+        }
     }
 };
 

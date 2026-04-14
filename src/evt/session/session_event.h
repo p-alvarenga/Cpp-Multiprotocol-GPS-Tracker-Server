@@ -31,13 +31,14 @@ public:
     bool operator==(const event& other) const noexcept;
 
     const msg::message& get_message() const noexcept;
-    msg::message& get_message() noexcept;
     error_code get_error() const noexcept;
     const net::session_id get_id() const noexcept { return id; }
     const core::imei* get_imei() const noexcept { return imei; };
 
     void set_message(const msg::message& m) noexcept;
     void set_error(const error_code errc) noexcept;
+
+    static event make_shutdown() noexcept;
 
     event(const net::session_id& id, const core::imei* imei) noexcept : type(kind::none), id(id), imei(imei) {};
 };
@@ -70,4 +71,11 @@ inline void event::set_error(const error_code errc) noexcept {
     type = kind::error;
     err_code = errc;
 }
+
+inline event event::make_shutdown() noexcept {
+    event ev(net::session_id(0), nullptr);
+    ev.type = kind::sys_shutdown;
+    return ev;
+}
+
 } // namespace evt::session
