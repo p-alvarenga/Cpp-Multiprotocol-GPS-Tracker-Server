@@ -19,6 +19,8 @@ type identify_protocol(const uint8_t* data, size_t size) noexcept;
 
 struct packet {
     uint16_t serial;
+    int packet_type;
+
     msg::message msg;
     packet() = default;
 };
@@ -43,15 +45,18 @@ public:
 
 class i_encoder {
 public:
-    frame generate_ack(const packet& pkt, frame& out);
+    virtual void generate_ack(const packet& pkt, frame& out) const noexcept = 0;
 };
 
 struct descriptor {
     i_decoder* decoder;
     i_encoder* encoder;
     std::unique_ptr<i_framer> (*make_framer)();
+
+    // ack policy.
 };
-namespace registry {
-const descriptor* resolve(protocol::type p);
-} // namespace registry
 } // namespace protocol
+
+namespace protocol::registry {
+const descriptor* resolve(protocol::type p);
+} // namespace protocol::registry

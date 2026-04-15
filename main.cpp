@@ -12,7 +12,7 @@ void handle_sigint(int) {
         return;
     }
 
-    core::log::err("gracefull shutdown failed. calling _exit(1)");
+    core::log::err("graceful shutdown failed. calling _exit(1)");
     _exit(1);
 }
 

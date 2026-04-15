@@ -23,22 +23,16 @@ private:
     std::atomic<bool> running{false};
 
     char read_buffer[constants::session_read_buffer_size];
+    uint8_t write_buffer[constants::session_write_buffer_size];
+
     evt::event_queue<evt::session::event>& sink;
 
     core::imei* device_imei{nullptr};
     protocol::packet* last_packet{nullptr};
 
-    void emit(const msg::message& m) {
-        evt::session::event ev(id, device_imei);
-        ev.set_message(m);
-        sink.push(ev);
-    }
-
-    void emit(const evt::session::error_code e) {
-        evt::session::event ev(id, device_imei);
-        ev.set_error(e);
-        sink.push(ev);
-    }
+    void send(const protocol::frame& frame) noexcept;
+    void emit(const evt::session::error_code e) const noexcept;
+    void emit(const msg::message& m) const noexcept;
 
 public:
     bool start() noexcept; // start = init() + run()
@@ -55,5 +49,17 @@ public:
 
     ~session() noexcept { stop(); }
 };
+
+inline void session::emit(const evt::session::error_code e) const noexcept {
+    evt::session::event ev(id, device_imei);
+    ev.set_error(e);
+    sink.push(ev);
+}
+
+inline void session::emit(const msg::message& m) const noexcept {
+    evt::session::event ev(id, device_imei);
+    ev.set_message(m);
+    sink.push(ev);
+}
 
 } // namespace net::session

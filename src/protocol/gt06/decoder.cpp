@@ -22,6 +22,8 @@ bool protocol::gt06::decoder::decode(const frame& f, packet& out) const noexcept
     int len = (int)f.data[2];
     uint8_t pkt_type = f.data[3];
 
+    out.packet_type = pkt_type;
+
     if (len + 5 != (int)f.size) {
         core::log::err("gt06: packet size does not match expected");
         return false;

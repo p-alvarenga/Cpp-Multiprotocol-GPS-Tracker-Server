@@ -32,7 +32,7 @@ public:
 
 class encoder : public protocol::i_encoder {
 public:
-    protocol::frame generate_ack(const packet& pkt, frame& out);
+    void generate_ack(const packet& pkt, frame& out) const noexcept override final;
 };
 
 inline decoder g_decoder;

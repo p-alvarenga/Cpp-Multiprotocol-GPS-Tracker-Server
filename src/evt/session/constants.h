@@ -6,9 +6,6 @@ namespace evt::session {
 enum class kind : uint8_t {
     none,
 
-    connected = 0,
-    disconnected,
-
     message,
     error,
 
@@ -22,10 +19,8 @@ enum class error_code : int {
 
 inline constexpr const char* kind_to_str(kind k) {
     switch (k) {
-    case kind::connected:
-        return "SESSION_CONNECTED";
-    case kind::disconnected:
-        return "SESSION_DISCONNECTED";
+    case kind::none:
+        return "SESSION_KIND_NONE";
     case kind::message:
         return "SESSION_MESSAGE";
     case kind::error:

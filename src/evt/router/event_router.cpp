@@ -21,7 +21,8 @@ bool evt::router::start() noexcept {
 
 void evt::router::run() noexcept {
     core::log::info("evt::router started");
-    dispatch_session_event();
+
+    dispatch_session_event(); // thread
 }
 
 void evt::router::dispatch_session_event() noexcept {
@@ -38,8 +39,7 @@ void evt::router::dispatch_session_event() noexcept {
             switch (msg.which()) {
             case msg::kind::login:
                 core::log::info("device %s successfully logged into server", msg.get_login()->imei.get());
-
-                break;
+                return;
             case msg::kind::location:
                 // device_manager.handle_location(location_message);
                 break;
@@ -58,7 +58,7 @@ void evt::router::dispatch_session_event() noexcept {
             core::log::err("event_router: session event has error %s", session::error_code_to_str(err));
         }
 
-        core::log::err("event kind not treated (kind: %d)", ev.which());
+        core::log::err("event kind not treated - kind=%d (%s)", ev_which, session::kind_to_str(ev_which));
     }
 }
 

@@ -27,6 +27,7 @@ bool net::session::session::start() noexcept {
 void net::session::session::loop() noexcept {
     while (is_running()) {
         memset(read_buffer, 0, constants::session_read_buffer_size);
+        memset(write_buffer, 0, constants::session_write_buffer_size);
 
         ssize_t n_recv = ::read(socket_fd, read_buffer, constants::session_read_buffer_size);
         if (n_recv == 0) {
@@ -59,7 +60,7 @@ void net::session::session::loop() noexcept {
             framer = protocol_desc->make_framer();
         }
 
-        if (protocol != protocol::type::unknown && framer) {
+        if (protocol != protocol::type::unknown && framer && protocol_desc) {
             framer->feed(reinterpret_cast<const uint8_t*>(read_buffer), static_cast<size_t>(n_recv));
 
             protocol::frame f;
@@ -72,14 +73,32 @@ void net::session::session::loop() noexcept {
                 }
 
                 emit(pkt.msg);
+
+                protocol::frame ack;
+                ack.data = write_buffer;
+
+                protocol_desc->encoder->generate_ack(pkt, ack);
+                send(ack);
             }
         }
     }
 }
 
-void net::session::session::request_stop() noexcept {
-    if (running.exchange(false)) return;
+void net::session::session::send(const protocol::frame& frame) noexcept {
+    size_t total = 0;
+    while (total < frame.size) {
+        ssize_t n = ::write(socket_fd, frame.data + total, frame.size - total);
+        if (n > 0) {
+            total += static_cast<size_t>(n);
+            continue;
+        }
+        if (n < 0 && errno == EINTR) continue;
+        return;
+    }
+}
 
+void net::session::session::request_stop() noexcept {
+    if (!running.exchange(false)) return;
     ::shutdown(socket_fd, SHUT_RDWR);
     ::close(socket_fd);
 }
